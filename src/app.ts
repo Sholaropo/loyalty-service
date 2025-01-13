@@ -6,7 +6,7 @@ import express, { Request, Response, Express } from "express";
 interface Customer {
 	id: number;
 	name: string;
-	status: "GOLD" | "SILVER" | "BRONZE";
+	status: "GOLD" | "SILVER" | "BRONZE" | "PLATINUM";
 	points: number;
 	lastPurchaseDate: string;
 	email?: string;
@@ -35,6 +35,16 @@ const customers: Customer[] = [
 		lastPurchaseDate: "2024-03-01",
 		email: "jane.doe@email.com",
 		joinDate: "2023-01-20",
+		notifications: false,
+	},
+	{
+		id: 3,
+		name: "Shola Ropo",
+		status: "PLATINUM",
+		points: 1000,
+		lastPurchaseDate: "2025-02-01",
+		email: "shola.ropo@email.com",
+		joinDate: "2024-01-20",
 		notifications: false,
 	},
 ];
@@ -77,12 +87,20 @@ app.post("/api/customers/:id/purchase", (req: Request, res: Response): void => {
 	}
 
 	const purchaseAmount: number = req.body.amount;
-	const storeLocation: string = req.body.storeLocation;
+    const storeLocation: string = req.body.storeLocation;
+    
+    let pointsEarned = Math.floor(purchaseAmount / 10);
+	if (customer.status === "GOLD") {
+		pointsEarned = Math.floor(pointsEarned * 1.4);
+	}
 
-	customer.points += Math.floor(purchaseAmount / 10);
+	customer.points += pointsEarned;
 	customer.lastPurchaseDate = new Date().toISOString();
 
-	if (customer.points >= 750) {
+	if (customer.points > 1000) {
+		customer.status = "PLATINUM";
+		customer.lastStatusChange = new Date().toISOString();
+	} else if (customer.points >= 750) {
 		customer.status = "GOLD";
 		customer.lastStatusChange = new Date().toISOString();
 	} else if (customer.points >= 500) {
